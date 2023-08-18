@@ -1,10 +1,10 @@
 const User = require('../models/users.js')
 const Blog = require('../models/blogs.js')
 
-
 const getAllBlogs = async (req, res) => {
+    let getAllBlogs
     try {
-        let getAllBlogs = await Blog.find();
+        getAllBlogs = await Blog.find();
         return res.send({ status: 1, response: getAllBlogs });
     } catch (error) {
         return res.send({ status: 0, response: error.message })
@@ -33,7 +33,9 @@ const getUsersWithBlog = async (req, res) => {
                     as: "BlogPostedDetails",
                 },
             },
+            {$project:{username:1, email:1, "BlogPostedDetails.title":1, "BlogPostedDetails.activeStatus":1}}
         ])
+        console.log({url:req.url,method: req.method, Originalurl : req.originalUrl, host : req.hostname , detail : req.rawHeaders });
         return res.send({ status: 1, response: getUserWithBlog })
 
     } catch (error) {
@@ -57,16 +59,16 @@ const deleteBlog = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-            await User.findByIdAndUpdate({ _id: id }, { $set: { userActiveStatus: 0 } });
-            await Blog.updateMany({ userPosted: id }, { $set: { activeStatus: 0 } })
-            return res.send({
-                status: 1,
-                response: "User and his/her blogs has been de-activated successfully",
-            });
+        await User.findByIdAndUpdate({ _id: id }, { $set: { userActiveStatus: 0 } });
+        await Blog.updateMany({ userPosted: id }, { $set: { activeStatus: 0 } })
+        return res.send({
+            status: 1,
+            response: "User and his/her blogs has been de-activated successfully",
+        });
 
     } catch (error) {
         return res.send({ status: 0, response: error.message })
     }
 }
 
-module.exports = {getAllBlogs, getAllUsers, getUsersWithBlog, deleteBlog, deleteUser} 
+module.exports = { getAllBlogs, getAllUsers, getUsersWithBlog, deleteBlog, deleteUser } 

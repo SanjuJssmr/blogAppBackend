@@ -1,5 +1,8 @@
 const Blog = require("../models/blogs.js");
-const fs = require("fs");
+const nodecache = require('node-cache')
+const crypto = require('crypto')
+const cache = new nodecache({ stdTTL: 10 })
+
 
 const getAllBlogs = async (req, res) => {
   try {
@@ -15,24 +18,38 @@ const getSingleBlog = async (req, res) => {
   try {
     let { id } = req.body,
       payload,
-      reader,
-      base64;
-    payload = await Blog.findById({ _id: id });
-    if (!payload) {
-      return res.send({ status: 0, response: "No blog found" });
-    } else {
-      reader = fs.readFileSync(payload.image);
-      base64 = new Buffer.from(reader).toString("base64");
-      return res.send({
-        status: 1,
-        response: {
-          userPosted: payload.userPosted,
-          title: payload.title,
-          description: payload.desc,
-          comments: payload.comments,
-          image: base64,
-        },
-      });
+      Key,
+      IV,
+      decipher,
+      decrypt;
+      
+    if (cache.has(id)) {
+      console.log('from cache');
+      return res.send(cache.get(id));
+    }
+    else {
+      payload = await Blog.findById({ _id: id });
+      if (!payload) {
+        return res.send({ status: 0, response: "No blog found" });
+      } else {
+        cache.set(id, payload);
+        IV = process.env.CRYPTO_IV
+        Key = process.env.CRYPTO_KEY
+        decipher = crypto.createDecipheriv('aes-256-cbc', Key, IV)
+        decrypt = decipher.update(payload.image, "hex", "utf-8");
+        decrypt += decipher.final("utf8");
+        console.log('from api');
+        return res.send({
+          status: 1,
+          response: {
+            userPosted: payload.userPosted,
+            title: payload.title,
+            description: payload.desc,
+            comments: payload.comments,
+            image: decrypt,
+          },
+        });
+      }
     }
   } catch (error) {
     return res.send({ status: 0, response: error.message });
@@ -42,16 +59,23 @@ const getSingleBlog = async (req, res) => {
 const postBlog = async (req, res) => {
   try {
     let { title, desc } = req.body,
-      postData;
+      postData, encrypted, IV, Key, cipher;
+
+    IV = process.env.CRYPTO_IV
+    Key = process.env.CRYPTO_KEY
+    cipher = crypto.createCipheriv('aes-256-cbc', Key, IV);
+    encrypted = cipher.update(awsLink, "utf-8", "hex");
+    encrypted += cipher.final("hex");
+
     postData = await Blog.create({
       userPosted: userInfo.user._id,
       title: title,
       desc: desc,
-      image: img,
+      image: encrypted,
     });
-    res.send({ status: 1, response: postData });
+    return res.send({ status: 1, response: postData });
   } catch (error) {
-    res.send({ status: 0, response: error.message });
+    return res.send({ status: 0, response: error.message });
   }
 };
 
@@ -71,7 +95,7 @@ const updateBlog = async (req, res) => {
         { _id: id },
         { title: title, desc: desc }
       );
-      res.send({
+     return res.send({
         status: 1,
         response: "updated successfully",
         payload: updatedBlog,
@@ -144,7 +168,6 @@ const replieComment = async (req, res) => {
         },
       }
     );
-
     return res.send({ status: 1, response: "Reply added successfully" });
   } catch (error) {
     return res.send({ status: 0, response: error.message });
@@ -165,7 +188,6 @@ const deleteReply = async (req, res) => {
           },
         }
       );
-
       return res.send({ status: 1, response: "Reply deleted" });
     } else {
       return res.send({ status: 0, response: "You can't delete this comment" });
@@ -186,56 +208,4 @@ module.exports = {
   deleteBlog,
   deleteReply,
 };
-
-// getBlog = await Blog.aggregate([
-//   { $group: { _id: blogId,   } },
-
-// {
-// $group:{_id:{"comments":id}}}
-
-// getBlog = await Blog.findById(
-//   { _id: blogId },
-//   { comments: { $elemMatch: { _id: id } } }
-// );
-
-// blogsId = getBlog.comments[0]._id;
-
-// postReply = await Blog.findOneAndUpdate(
-//   { _id: blogId },
-//   { "comments._id": blogsId },
-//   {
-//     $push: {
-//       replies: [{ userReplied: userInfo.user._id, reply: reply }],
-//     },
-//   }
-// );
-
-// console.log(postReply);
-// console.log(getBlog);
-
-//     let ggid = getBlog.comments[0]._id.toString();
-//     console.log(ggid);
-
-//     getComment = await Blog.findOneAndUpdate(
-//       { comments: { $elemMatch: { _id: id } } },
-//       {
-//         $push: {
-//         replies: [{userReplied:userInfo.user._id,reply: reply}] },
-
-//       },
-//       { new: true }
-//     );
-// console.log(getComment);
-// //  getBlog=   await Blog.findOneAndUpdate(
-// //       { _id: blogId, "comments._id": id },
-// //       { $push: { "comments.0.replies": { reply: reply } } }
-// //     );
-
-// console.log(getComment);
-// return res.send({
-//   status: 1,
-//   response: "comment added",
-
-//   comment: getBlog,
-// });
 

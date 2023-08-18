@@ -33,7 +33,7 @@ const registerUser = async (req, res) => {
         });
 
         if (payload) {
-          link = `http://localhost:5001/users//verify/${payload._id}`;
+          link = `http://localhost:5001/users/verify/${payload._id}`;
 
           mailOptions = {
             from: configMail.fromSmtp,
@@ -97,7 +97,6 @@ const loginUser = async (req, res) => {
     accessToken;
   try {
     userExist = await Users.findOne({ email: email });
-
     if (!userExist) {
       return res.send({
         status: 0,
