@@ -3,7 +3,7 @@ const multer = require('multer')
 const nodemailer = require('nodemailer')
 
 
-let serverConnections, configMail, fileStore;
+let serverConnections, configMail, fileStore, awsConfig;
 
 serverConnections = {
     MONGODB : process.env.MONGO_URL,
@@ -28,5 +28,10 @@ fileStore = multer.diskStorage({
     }
 })
 
+awsConfig = {
+  ACCESS_KEY : process.env.ACCESS_KEY,
+  SECRET_KEY : process.env.SECRET_KEY,
+  BUCKET_NAME : process.env.BUCKET_NAME
+}
 
-module.exports = {serverConnections, fileStore, configMail}
+module.exports = {serverConnections, fileStore, configMail, awsConfig}

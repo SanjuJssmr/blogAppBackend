@@ -29,11 +29,11 @@ const registerUser = async (req, res) => {
           password: hashedPass,
           otp: otp,
           isAdmin: isAdmin,
-          pdf:pdfFile
+          pdf: pdfFile
         });
 
         if (payload) {
-          link = `http://localhost:5001/users//verify/${payload._id}`;
+          link = `http://localhost:5001/users/verify/${payload._id}`;
 
           mailOptions = {
             from: configMail.fromSmtp,
@@ -97,7 +97,6 @@ const loginUser = async (req, res) => {
     accessToken;
   try {
     userExist = await Users.findOne({ email: email });
-
     if (!userExist) {
       return res.send({
         status: 0,
@@ -115,6 +114,9 @@ const loginUser = async (req, res) => {
         response: "You need to be verified in order to login",
       });
     } else {
+
+      req.session.isAuth = true;
+      req.session.username = userExist.email;
       accessToken = jwt.sign(
         { user: { _id: userExist._id, email: userExist.email, admin: userExist.isAdmin } },
         process.env.JWT_SECRET,
@@ -131,4 +133,13 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyUsers, loginUser };
+
+const logout = async(req,res) =>{
+    req.session.destroy((err) => {
+      if (err) throw err;
+      return res.send({status:1, response:"logout successfully"})
+    });
+}
+
+
+module.exports = { registerUser, verifyUsers, loginUser, logout };

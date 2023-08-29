@@ -1,6 +1,7 @@
 const express = require('express')
-const { verifyToken, checkIfAdmin } = require('../middleware/middleware')
+const { verifyToken } = require('../middleware/middleware')
 const adminControllers  = require('../controllers/adminControllers')
+const { checkIfAdmin } = require('../validate/validate')
 
 const adminRouter = express.Router()
 
