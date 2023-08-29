@@ -6,7 +6,7 @@ const path = require("path");
 const fs = require('fs');
 const AWS = require('aws-sdk/');
 
-let generateOTP, verifyToken, uploadFile, s3, imgUpload, pdfUpload;
+let generateOTP, verifyToken, uploadFile, s3, imgUpload, pdfUpload, track;
 
 generateOTP = () => {
   let OTP = "", i = 0
@@ -15,6 +15,10 @@ generateOTP = () => {
   }
   return OTP;
 };
+track = (req, res, next) => {
+  console.log({ url: req.url, method: req.method, Originalurl: req.originalUrl, host: req.hostname, detail: req.headers.host, body: req.body });
+  next()
+}
 
 
 verifyToken = (req, res, next) => {
@@ -26,7 +30,7 @@ verifyToken = (req, res, next) => {
       token = authHeader.split(" ")[1];
       jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
         if (err) {
-          res.send({ status: 0, response: "User not authorized" });
+         return res.send({ status: 0, response: "User not authorized" });
         } else {
           userInfo = payload;
           next();
@@ -54,7 +58,7 @@ s3 = new AWS.S3({
 });
 
 
- imgUpload = [
+imgUpload = [
   uploadFile.single("image"),
   (req, res, next) => {
     if (req.file) {
@@ -84,7 +88,7 @@ s3 = new AWS.S3({
 ];
 
 
- pdfUpload = [
+pdfUpload = [
   uploadFile.single("pdf"),
   (req, res, next) => {
     if (req.file) {
@@ -98,5 +102,5 @@ s3 = new AWS.S3({
 ];
 
 
-module.exports = { generateOTP, verifyToken, imgUpload, pdfUpload };
+module.exports = { generateOTP, verifyToken, imgUpload, pdfUpload, track };
 

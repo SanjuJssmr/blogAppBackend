@@ -39,6 +39,7 @@ const getSingleBlog = async (req, res) => {
         decrypt = decipher.update(payload.image, "hex", "utf-8");
         decrypt += decipher.final("utf8");
         console.log('from api');
+   
         return res.send({
           status: 1,
           response: {

@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
           password: hashedPass,
           otp: otp,
           isAdmin: isAdmin,
-          pdf:pdfFile
+          pdf: pdfFile
         });
 
         if (payload) {
@@ -114,6 +114,9 @@ const loginUser = async (req, res) => {
         response: "You need to be verified in order to login",
       });
     } else {
+
+      req.session.isAuth = true;
+      req.session.username = userExist.email;
       accessToken = jwt.sign(
         { user: { _id: userExist._id, email: userExist.email, admin: userExist.isAdmin } },
         process.env.JWT_SECRET,
@@ -130,4 +133,13 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyUsers, loginUser };
+
+const logout = async(req,res) =>{
+    req.session.destroy((err) => {
+      if (err) throw err;
+      return res.send({status:1, response:"logout successfully"})
+    });
+}
+
+
+module.exports = { registerUser, verifyUsers, loginUser, logout };

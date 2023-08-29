@@ -1,11 +1,11 @@
 const express = require("express");
-const { verifyToken, imgUpload } = require("../middleware/middleware");
+const { verifyToken, imgUpload, track } = require("../middleware/middleware");
 const blogControlls = require("../controllers/blogControllers");
 const { idValCheck, blogValCheck } = require("../validate/validate");
-
+const authVal = require('../middleware/auth.js')
 let blogRouter = express.Router();
 
-blogRouter.get("/viewAllBlogs", verifyToken, blogControlls.getAllBlogs);
+blogRouter.get("/viewAllBlogs",authVal, blogControlls.getAllBlogs);
 blogRouter.get("/singleBlog", verifyToken, idValCheck, blogControlls.getSingleBlog);
 blogRouter.post("/postBlog", verifyToken, imgUpload, blogValCheck, blogControlls.postBlog);
 blogRouter.post("/updateBlog", verifyToken, idValCheck, blogControlls.updateBlog);

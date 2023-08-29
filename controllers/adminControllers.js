@@ -35,7 +35,6 @@ const getUsersWithBlog = async (req, res) => {
             },
             {$project:{username:1, email:1, "BlogPostedDetails.title":1, "BlogPostedDetails.activeStatus":1}}
         ])
-        console.log({url:req.url,method: req.method, Originalurl : req.originalUrl, host : req.hostname , detail : req.rawHeaders });
         return res.send({ status: 1, response: getUserWithBlog })
 
     } catch (error) {
